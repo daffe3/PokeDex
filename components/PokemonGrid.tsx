@@ -9,6 +9,7 @@ interface PokemonGridProps {
   favoritePokemonIds?: Set<number>;
   onPokemonClick: (pokemon: PokemonDetail) => void;
   onToggleFavorite: (pokemonId: number) => void;
+  showAllShiny: boolean;
 }
 
 const PokemonGrid: React.FC<PokemonGridProps> = ({
@@ -16,6 +17,7 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
   favoritePokemonIds = new Set(),
   onPokemonClick,
   onToggleFavorite,
+  showAllShiny,
 }) => {
   if (pokemonList.length === 0) {
     return (
@@ -34,6 +36,7 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
           isFavorite={favoritePokemonIds.has(pokemon.id)}
           onClick={onPokemonClick}
           onToggleFavorite={onToggleFavorite}
+          showShiny={showAllShiny}
         />
       ))}
     </div>

@@ -13,11 +13,16 @@ export default function PokedexPage() {
   const [allPokemon, setAllPokemon] = useState<PokemonDetail[]>([]);
   const [visiblePokemon, setVisiblePokemon] = useState<PokemonDetail[]>([]);
   const [filteredPokemon, setFilteredPokemon] = useState<PokemonDetail[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [selectedPokemon, setSelectedPokemon] = useState<PokemonDetail | null>(null);
-  const [favoritePokemonIds, setFavoritePokemonIds] = useState<Set<number>>(new Set());
+  const [selectedPokemon, setSelectedPokemon] = useState<PokemonDetail | null>(
+    null
+  );
+  const [favoritePokemonIds, setFavoritePokemonIds] = useState<Set<number>>(
+    new Set()
+  );
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [showAllShiny, setShowAllShiny] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [allTypes, setAllTypes] = useState<string[]>([]);
@@ -41,30 +46,51 @@ export default function PokedexPage() {
   }, []);
 
   useEffect(() => {
-    const stored = localStorage.getItem('pokedexFavorites');
-    if (stored) {
+    const storedFavorites = localStorage.getItem("pokedexFavorites");
+    if (storedFavorites) {
       try {
-        setFavoritePokemonIds(new Set(JSON.parse(stored)));
+        setFavoritePokemonIds(new Set(JSON.parse(storedFavorites)));
       } catch {
-        localStorage.removeItem('pokedexFavorites');
+        localStorage.removeItem("pokedexFavorites");
       }
+    }
+    const storedShiny = localStorage.getItem("pokedexShowShiny");
+    if (storedShiny !== null) {
+      setShowAllShiny(JSON.parse(storedShiny));
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('pokedexFavorites', JSON.stringify(Array.from(favoritePokemonIds)));
+    localStorage.setItem(
+      "pokedexFavorites",
+      JSON.stringify(Array.from(favoritePokemonIds))
+    );
   }, [favoritePokemonIds]);
 
   useEffect(() => {
-    const searchFiltered = allPokemon.filter(p => {
-      const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    localStorage.setItem("pokedexShowShiny", JSON.stringify(showAllShiny));
+  }, [showAllShiny]);
+
+  useEffect(() => {
+    const searchFiltered = allPokemon.filter((p) => {
+      const matchesSearch = p.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
       const matchesType = selectedType ? p.types.includes(selectedType) : true;
-      const matchesFavorites = showFavoritesOnly ? favoritePokemonIds.has(p.id) : true;
+      const matchesFavorites = showFavoritesOnly
+        ? favoritePokemonIds.has(p.id)
+        : true;
       return matchesSearch && matchesType && matchesFavorites;
     });
     setFilteredPokemon(searchFiltered);
     setCurrentPage(1);
-  }, [searchTerm, selectedType, showFavoritesOnly, allPokemon, favoritePokemonIds]);
+  }, [
+    searchTerm,
+    selectedType,
+    showFavoritesOnly,
+    allPokemon,
+    favoritePokemonIds,
+  ]);
 
   useEffect(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -73,9 +99,11 @@ export default function PokedexPage() {
   }, [filteredPokemon, currentPage]);
 
   const toggleFavorite = (pokemonId: number) => {
-    setFavoritePokemonIds(prev => {
+    setFavoritePokemonIds((prev) => {
       const updated = new Set(prev);
-      updated.has(pokemonId) ? updated.delete(pokemonId) : updated.add(pokemonId);
+      updated.has(pokemonId)
+        ? updated.delete(pokemonId)
+        : updated.add(pokemonId);
       return updated;
     });
   };
@@ -95,6 +123,8 @@ export default function PokedexPage() {
           onTypeChange={setSelectedType}
           showFavoritesOnly={showFavoritesOnly}
           onShowFavoritesChange={setShowFavoritesOnly}
+          showAllShiny={showAllShiny}
+          onToggleAllShiny={setShowAllShiny}
         />
 
         {loading ? (
@@ -109,12 +139,13 @@ export default function PokedexPage() {
               favoritePokemonIds={favoritePokemonIds}
               onPokemonClick={setSelectedPokemon}
               onToggleFavorite={toggleFavorite}
+              showAllShiny={showAllShiny}
             />
 
             {filteredPokemon.length > ITEMS_PER_PAGE && (
               <div className="flex justify-center mt-8 space-x-4">
                 <button
-                  onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
                   className="px-6 py-3 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-md transition disabled:opacity-50"
                 >
@@ -124,7 +155,9 @@ export default function PokedexPage() {
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
-                  onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(p + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                   className="px-6 py-3 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 shadow-md transition disabled:opacity-50"
                 >
@@ -139,6 +172,7 @@ export default function PokedexPage() {
           <PokemonDetailModal
             pokemon={selectedPokemon}
             onClose={() => setSelectedPokemon(null)}
+            showShinyInitially={showAllShiny}
           />
         )}
       </div>

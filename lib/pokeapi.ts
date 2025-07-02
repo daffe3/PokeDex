@@ -13,26 +13,33 @@ export async function loadAllPokemonData(): Promise<{ pokemonList: PokemonDetail
       const pokeData = detailRes.data;
 
       const types = pokeData.types.map((t: any) => t.type.name);
-      types.forEach((t: string) => allTypesSet.add(t)); 
+      types.forEach((t: string) => allTypesSet.add(t));
+
+      const moves = pokeData.moves.map((m: any) => m.move.name);
 
       return {
         id: pokeData.id,
         name: pokeData.name,
-        image:
+        image: 
           pokeData.sprites.other['official-artwork'].front_default ||
           pokeData.sprites.front_default ||
           `https://placehold.co/150x150/e0e0e0/000000?text=${pokeData.name}`,
+        shinyImage: 
+          pokeData.sprites.other['official-artwork'].front_shiny ||
+          pokeData.sprites.front_shiny ||
+          `https://placehold.co/150x150/ffd700/000000?text=Shiny%20${pokeData.name}`, 
         types,
         height: pokeData.height,
         weight: pokeData.weight,
-        sprites: pokeData.sprites,
+        sprites: pokeData.sprites, 
+        moves,
       };
     })
   );
 
   return {
     pokemonList: allDetails,
-    types: Array.from(allTypesSet).sort(), 
+    types: Array.from(allTypesSet).sort(),
   };
 }
 
@@ -55,17 +62,24 @@ export async function loadPokemonList(url: string): Promise<{
       const types = pokeData.types.map((t: any) => t.type.name);
       types.forEach((t: string) => allTypesSet.add(t));
 
+      const moves = pokeData.moves.map((m: any) => m.move.name);
+
       return {
         id: pokeData.id,
         name: pokeData.name,
-        image:
+        image: 
           pokeData.sprites.other['official-artwork'].front_default ||
           pokeData.sprites.front_default ||
           `https://placehold.co/150x150/e0e0e0/000000?text=${pokeData.name}`,
+        shinyImage: 
+          pokeData.sprites.other['official-artwork'].front_shiny ||
+          pokeData.sprites.front_shiny ||
+          `https://placehold.co/150x150/ffd700/000000?text=Shiny%20${pokeData.name}`, 
         types,
         height: pokeData.height,
         weight: pokeData.weight,
         sprites: pokeData.sprites,
+        moves,
       };
     })
   );
