@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { PokemonDetail } from "@/lib/types";
-
 interface PokemonDetailModalProps {
   pokemon: PokemonDetail;
   onClose: () => void;
@@ -23,8 +22,11 @@ const PokemonDetailModal: React.FC<PokemonDetailModalProps> = ({
   const currentImage = showShiny ? pokemon.shinyImage : pokemon.image;
   const imageAltText = showShiny ? `Shiny ${pokemon.name}` : pokemon.name;
 
-  const movesToShow = pokemon.moves.slice(0, 10);
-  const hasMoreMoves = pokemon.moves.length > 10;
+  const movesToShow = pokemon.moves ? pokemon.moves.slice(0, 10) : [];
+  const hasMoreMoves = pokemon.moves && pokemon.moves.length > 10;
+
+  const starSvgPath =
+    "M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z";
 
   return (
     <div
@@ -42,43 +44,41 @@ const PokemonDetailModal: React.FC<PokemonDetailModalProps> = ({
           &times;
         </button>
 
-        <button
-          onClick={() => setShowShiny((prev) => !prev)}
-          className="absolute top-4 left-4 p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-200 text-sm px-2 py-1 flex items-center space-x-1 z-10"
-          aria-label={
-            showShiny
-              ? `Show normal ${pokemon.name}`
-              : `Show shiny ${pokemon.name}`
-          }
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+        <div className="flex flex-col items-center mb-4">
+          <h2
+            id="pokemon-detail-title"
+            className="text-3xl font-bold capitalize text-red-700 mb-2 flex items-center space-x-2"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.974 2.889a1 1 000-.364 1.118l1.519 4.674c.3.921-.755 1.688-1.539 1.118l-3.974-2.889a1 1 000-1.118l1.519-4.674c.3-.921-1.603-.921-1.902 0l-1.519 4.674a1 1 000-.69H2.605c-.969 0-1.371-1.24-.588-1.81l3.974-2.889a1 1 000-.118z"
-            ></path>
-          </svg>
-          <span className={`${showShiny ? "text-blue-500" : "text-gray-600"}`}>
-            {showShiny ? "Normal" : "Shiny"}
-          </span>
-        </button>
+            <span>{pokemon.name}</span>
+            <span className="text-gray-500 text-xl">
+              #{String(pokemon.id).padStart(3, "0")}
+            </span>
+          </h2>
 
-        <h2
-          id="pokemon-detail-title"
-          className="text-3xl font-bold capitalize text-center text-red-700 mb-4"
-        >
-          {pokemon.name}{" "}
-          <span className="text-gray-500 text-xl">
-            #{String(pokemon.id).padStart(3, "0")}
-          </span>
-        </h2>
+          <button
+            onClick={() => setShowShiny((prev) => !prev)}
+            className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-200 text-sm px-2 py-1 flex items-center space-x-1"
+            aria-label={
+              showShiny
+                ? `Show normal ${pokemon.name}`
+                : `Show shiny ${pokemon.name}`
+            }
+          >
+            <svg
+              className="w-5 h-5"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d={starSvgPath}></path>
+            </svg>
+            <span
+              className={`${showShiny ? "text-blue-500" : "text-gray-600"}`}
+            >
+              {showShiny ? "Shiny" : "Normal"}
+            </span>
+          </button>
+        </div>
 
         <div className="text-center mb-4">
           <img
@@ -107,6 +107,47 @@ const PokemonDetailModal: React.FC<PokemonDetailModalProps> = ({
           </p>
 
           <div>
+            <span className="font-semibold">Abilities:</span>
+            <ul className="list-disc list-inside text-base mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+              {pokemon.abilities && pokemon.abilities.length > 0 ? (
+                pokemon.abilities.map((ability, index) => (
+                  <li key={index} className="capitalize">
+                    {ability}
+                  </li>
+                ))
+              ) : (
+                <p className="text-base text-gray-500 mt-1">
+                  No abilities listed.
+                </p>
+              )}
+            </ul>
+          </div>
+
+          <div className="mt-4">
+            <span className="font-semibold">Base Stats:</span>
+            <ul className="text-base mt-1 space-y-1">
+              {pokemon.stats &&
+                Object.entries(pokemon.stats).map(([statName, value]) => (
+                  <li
+                    key={statName}
+                    className="flex justify-between items-center capitalize"
+                  >
+                    <span className="font-medium">
+                      {statName.replace("-", " ")}:
+                    </span>
+                    <span className="font-bold text-blue-700">{value}</span>
+                    <div className="w-2/3 bg-gray-200 rounded-full h-2.5 ml-2">
+                      <div
+                        className="bg-blue-500 h-2.5 rounded-full"
+                        style={{ width: `${(value / 255) * 100}%` }}
+                      ></div>
+                    </div>
+                  </li>
+                ))}
+            </ul>
+          </div>
+
+          <div>
             <span className="font-semibold">Moves:</span>
             <ul className="list-disc list-inside text-base mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
               {movesToShow.map((move, index) => (
@@ -120,7 +161,7 @@ const PokemonDetailModal: React.FC<PokemonDetailModalProps> = ({
                 And {pokemon.moves.length - movesToShow.length} more moves...
               </p>
             )}
-            {pokemon.moves.length === 0 && (
+            {pokemon.moves && pokemon.moves.length === 0 && (
               <p className="text-base text-gray-500 mt-1">No moves listed.</p>
             )}
           </div>

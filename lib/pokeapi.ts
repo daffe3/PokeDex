@@ -1,5 +1,13 @@
 import axios from 'axios';
-import { PokemonDetail, PokeApiResponse, PokemonListItem } from './types';
+import { PokemonDetail, PokeApiResponse, PokemonListItem, PokemonStat, PokemonAbility, PokemonMove, PokemonStats } from './types';
+
+const parseStats = (rawStats: PokemonStat[]): PokemonStats => {
+  const stats: Partial<PokemonStats> = {};
+  rawStats.forEach(stat => {
+    stats[stat.stat.name as keyof PokemonStats] = stat.base_stat;
+  });
+  return stats as PokemonStats;
+};
 
 export async function loadAllPokemonData(): Promise<{ pokemonList: PokemonDetail[]; types: string[]; }> {
   const response = await axios.get<PokeApiResponse>('https://pokeapi.co/api/v2/pokemon?limit=151');
@@ -15,23 +23,31 @@ export async function loadAllPokemonData(): Promise<{ pokemonList: PokemonDetail
       const types = pokeData.types.map((t: any) => t.type.name);
       types.forEach((t: string) => allTypesSet.add(t));
 
-      const moves = pokeData.moves.map((m: any) => m.move.name);
+      const shinyImage = pokeData.sprites.other['official-artwork'].front_shiny ||
+                         pokeData.sprites.front_shiny ||
+                         `https://placehold.co/150x150/e0e0e0/000000?text=Shiny ${pokeData.name}`;
+
+      const abilities = pokeData.abilities.map((a: PokemonAbility) => a.ability.name);
+
+      const stats = parseStats(pokeData.stats);
+
+      const moves = pokeData.moves.map((m: PokemonMove) => m.move.name);
+
 
       return {
         id: pokeData.id,
         name: pokeData.name,
-        image: 
+        image:
           pokeData.sprites.other['official-artwork'].front_default ||
           pokeData.sprites.front_default ||
           `https://placehold.co/150x150/e0e0e0/000000?text=${pokeData.name}`,
-        shinyImage: 
-          pokeData.sprites.other['official-artwork'].front_shiny ||
-          pokeData.sprites.front_shiny ||
-          `https://placehold.co/150x150/ffd700/000000?text=Shiny%20${pokeData.name}`, 
+        shinyImage, 
         types,
         height: pokeData.height,
         weight: pokeData.weight,
         sprites: pokeData.sprites, 
+        abilities, 
+        stats, 
         moves,
       };
     })
@@ -62,23 +78,30 @@ export async function loadPokemonList(url: string): Promise<{
       const types = pokeData.types.map((t: any) => t.type.name);
       types.forEach((t: string) => allTypesSet.add(t));
 
-      const moves = pokeData.moves.map((m: any) => m.move.name);
+      const shinyImage = pokeData.sprites.other['official-artwork'].front_shiny ||
+                         pokeData.sprites.front_shiny ||
+                         `https://placehold.co/150x150/e0e0e0/000000?text=Shiny ${pokeData.name}`;
+
+      const abilities = pokeData.abilities.map((a: PokemonAbility) => a.ability.name);
+
+      const stats = parseStats(pokeData.stats);
+
+      const moves = pokeData.moves.map((m: PokemonMove) => m.move.name);
 
       return {
         id: pokeData.id,
         name: pokeData.name,
-        image: 
+        image:
           pokeData.sprites.other['official-artwork'].front_default ||
           pokeData.sprites.front_default ||
           `https://placehold.co/150x150/e0e0e0/000000?text=${pokeData.name}`,
-        shinyImage: 
-          pokeData.sprites.other['official-artwork'].front_shiny ||
-          pokeData.sprites.front_shiny ||
-          `https://placehold.co/150x150/ffd700/000000?text=Shiny%20${pokeData.name}`, 
+        shinyImage,
         types,
         height: pokeData.height,
         weight: pokeData.weight,
         sprites: pokeData.sprites,
+        abilities,
+        stats,
         moves,
       };
     })

@@ -9,7 +9,12 @@ export interface PokemonType {
 export interface PokemonSpriteOther {
   'official-artwork': {
     front_default: string | null;
-    front_shiny: string | null; 
+  };
+  other: {
+    'official-artwork': {
+      front_default: string | null;
+      front_shiny: string | null; 
+    };
   };
 }
 
@@ -19,23 +24,55 @@ export interface PokemonSprites {
   other: PokemonSpriteOther;
 }
 
-export interface PokemonMove {
-  move: {
+export interface PokemonStat {
+  base_stat: number;
+  effort: number;
+  stat: {
     name: string;
     url: string;
   };
 }
 
+export interface PokemonStats {
+  hp: number;
+  attack: number;
+  defense: number;
+  'special-attack': number;
+  'special-defense': number;
+  speed: number;
+  [key: string]: number; 
+}
+
+export interface PokemonAbility {
+  ability: {
+    name: string;
+    url: string;
+  };
+  is_hidden: boolean;
+  slot: number;
+}
+
+export interface PokemonMove {
+  move: {
+    name: string;
+    url: string;
+  };
+  version_group_details: any[]; 
+}
+
+
 export interface PokemonDetail {
   id: number;
   name: string;
-  image: string; 
+  image: string;
   shinyImage: string; 
   types: string[];
   height: number;
   weight: number;
   sprites: PokemonSprites;
-  moves: string[];
+  abilities: string[]; 
+  stats: PokemonStats; 
+  moves: string[]; 
 }
 
 export interface PokemonListItem {
