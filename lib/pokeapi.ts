@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { PokemonDetail, PokeApiResponse, PokemonListItem, PokemonStat, PokemonAbility, PokemonMove, PokemonStats } from './types';
+import { PokemonDetail, PokeApiResponse, PokemonListItem, PokemonStat, PokemonAbility, PokemonMove, PokemonStats, LocationAreaEncounter } from './types';
 
 const parseStats = (rawStats: PokemonStat[]): PokemonStats => {
   const stats: Partial<PokemonStats> = {};
@@ -28,11 +28,8 @@ export async function loadAllPokemonData(): Promise<{ pokemonList: PokemonDetail
                          `https://placehold.co/150x150/e0e0e0/000000?text=Shiny ${pokeData.name}`;
 
       const abilities = pokeData.abilities.map((a: PokemonAbility) => a.ability.name);
-
       const stats = parseStats(pokeData.stats);
-
       const moves = pokeData.moves.map((m: PokemonMove) => m.move.name);
-
 
       return {
         id: pokeData.id,
@@ -41,13 +38,13 @@ export async function loadAllPokemonData(): Promise<{ pokemonList: PokemonDetail
           pokeData.sprites.other['official-artwork'].front_default ||
           pokeData.sprites.front_default ||
           `https://placehold.co/150x150/e0e0e0/000000?text=${pokeData.name}`,
-        shinyImage, 
+        shinyImage,
         types,
         height: pokeData.height,
         weight: pokeData.weight,
-        sprites: pokeData.sprites, 
-        abilities, 
-        stats, 
+        sprites: pokeData.sprites,
+        abilities,
+        stats,
         moves,
       };
     })
@@ -83,9 +80,7 @@ export async function loadPokemonList(url: string): Promise<{
                          `https://placehold.co/150x150/e0e0e0/000000?text=Shiny ${pokeData.name}`;
 
       const abilities = pokeData.abilities.map((a: PokemonAbility) => a.ability.name);
-
       const stats = parseStats(pokeData.stats);
-
       const moves = pokeData.moves.map((m: PokemonMove) => m.move.name);
 
       return {
@@ -113,4 +108,23 @@ export async function loadPokemonList(url: string): Promise<{
     next: data.next,
     previous: data.previous,
   };
+}
+
+export async function fetchPokemonLocations(pokemonId: number): Promise<string[]> {
+  try {
+    const response = await axios.get<LocationAreaEncounter[]>(`https://pokeapi.co/api/v2/pokemon/${pokemonId}/encounters`);
+    const data = response.data;
+
+    const locations = Array.from(new Set(
+      data.map(encounter =>
+        encounter.location_area.name
+          .replace(/-/g, ' ') 
+          .replace(/\b\w/g, char => char.toUpperCase()) 
+      )
+    ));
+    return locations;
+  } catch (error) {
+    console.error(`Error fetching locations for Pokemon ID ${pokemonId}:`, error);
+    return []; 
+  }
 }

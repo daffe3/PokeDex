@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { PokemonDetail } from "@/lib/types";
+import { fetchPokemonLocations } from "@/lib/pokeapi";
+
 interface PokemonDetailModalProps {
   pokemon: PokemonDetail;
   onClose: () => void;
@@ -14,10 +16,23 @@ const PokemonDetailModal: React.FC<PokemonDetailModalProps> = ({
   showShinyInitially,
 }) => {
   const [showShiny, setShowShiny] = useState(showShinyInitially);
+  const [locations, setLocations] = useState<string[]>([]);
+  const [locationsLoading, setLocationsLoading] = useState(true);
 
   useEffect(() => {
     setShowShiny(showShinyInitially);
   }, [showShinyInitially]);
+
+  useEffect(() => {
+    const getLocations = async () => {
+      setLocationsLoading(true);
+      const fetchedLocations = await fetchPokemonLocations(pokemon.id);
+      setLocations(fetchedLocations);
+      setLocationsLoading(false);
+    };
+
+    getLocations();
+  }, [pokemon.id]);
 
   const currentImage = showShiny ? pokemon.shinyImage : pokemon.image;
   const imageAltText = showShiny ? `Shiny ${pokemon.name}` : pokemon.name;
@@ -163,6 +178,26 @@ const PokemonDetailModal: React.FC<PokemonDetailModalProps> = ({
             )}
             {pokemon.moves && pokemon.moves.length === 0 && (
               <p className="text-base text-gray-500 mt-1">No moves listed.</p>
+            )}
+          </div>
+
+          <div className="mt-4">
+            <span className="font-semibold">Locations:</span>
+            {locationsLoading ? (
+              <p className="text-base text-gray-500 mt-1">
+                Loading locations...
+              </p>
+            ) : locations.length > 0 ? (
+              <ul className="list-disc list-inside text-base mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                {locations.map((loc, index) => (
+                  <li key={index}>{loc}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-base text-gray-500 mt-1">
+                No specific encounter locations found for this Pokémon in the
+                Kanto region.
+              </p>
             )}
           </div>
         </div>
